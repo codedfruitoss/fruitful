@@ -13,34 +13,48 @@ function getDisplayTime(seconds: number) {
 }
 
 export default function Main() {
-  const [ptime, setPTime] = useState(1500);
-  // const [timerOn, setTimerOn] = useState(false)
-  // let myTimer: any
+  const workTime = 60;
+  const breakTime = 30;
+  const [time, setTime] = useState(workTime);
+  const [workOrBreak, setTimerType] = useState('work')
 
 
   useEffect(() => {
-    setInterval(() => { setPTime((a) => a > 0 ? a - 1 : a); }, 1000);
+    setInterval(() => { setTime((a) => a > 0 ? a - 1 : a); }, 1000);
   }, []);
 
-  // useEffect(() => {
-  //   console.log("inside useeee", timerOn)
-  //   // const myTimer = setInterval(() => { setPTime((a) => a > 0 ? a - 1 : a); }, 1000);
-  //   if (!timerOn) {
-  //     clearInterval(myTimer)
-  //   }
-  //   else {
-  //     clearInterval(myTimer)
-  //     myTimer = setInterval(() => { setPTime((a) => a > 0 ? a - 1 : a); }, 1000);
-  //   }
-  // }, [timerOn])
+  const skipTimer = () => {
+    if (workOrBreak === 'work') {
+      setTimerType('break')
+      setTime(breakTime)
+    }
+    else {
+      setTimerType('work')
+      setTime(workTime)
+    }
+  }
+
+  useEffect(() => {
+    if (time === 0) {
+      skipTimer()
+    }
+  }), [time]
+
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: "black" }}>
         {/* <NormalText style={{ margin: "auto" }}>{getDisplayTime(ptime)}</NormalText> */}
         <Pressable style={{ margin: "auto" }} onPress={() => { }}>
-          <NormalText>{getDisplayTime(ptime)}</NormalText>
+          <NormalText>{getDisplayTime(time)}</NormalText>
         </Pressable>
+        <Pressable style={{ margin: "auto" }} onPress={skipTimer}
+        >
+          <NormalText>Swipe right</NormalText>
+        </Pressable>
+        {/* <Pressable style={{ margin: "auto" }} onPress={() => { }}>
+          <NormalText>Swipe left</NormalText>
+        </Pressable> */}
       </View>
     </View>
   );
