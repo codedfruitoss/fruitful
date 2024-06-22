@@ -22,12 +22,20 @@ const intialPTime = 1500;
 export default function Main() {
 	const [ptime, setPTime] = useState(intialPTime);
 	const intervalRef = useRef<any>(null);
+	const [isPaused, setIsPaused] = useState(false);
 
-	const tap = Gesture.Tap().onEnd(() => {
-		startTimer();
-	});
+	const tap = Gesture.Tap()
+		.onEnd(() => {
+			if (!isPaused) {
+				startPauseTimer();
+			} else {
+				pauseTimer();
+			}
+			setIsPaused((isPaused) => !isPaused);
+		})
+		.runOnJS(true);
 
-	function startTimer() {
+	function startPauseTimer() {
 		if (!intervalRef.current) {
 			const id = setInterval(() => {
 				setPTime((a) => (a > 0 ? a - 1 : a));
@@ -43,7 +51,7 @@ export default function Main() {
 	}
 
 	function pauseTimer() {
-		clearInterval(intervalRef.current);
+		clearInterval(intervalRef?.current);
 		intervalRef.current = null;
 	}
 
@@ -65,22 +73,11 @@ export default function Main() {
 					{getDisplayTime(ptime)}
 				</NormalText>
 			</GestureDetector>
-			<View>
-				<Pressable onPress={() => startTimer()}>
-					<NormalText style={{ fontSize: 24 }}>Start</NormalText>
-				</Pressable>
-			</View>
+
 			<View>
 				<Pressable onPress={() => stopTimer()}>
 					<NormalText style={{ fontSize: 24, marginTop: 24 }}>
 						Stop
-					</NormalText>
-				</Pressable>
-			</View>
-			<View>
-				<Pressable onPress={() => pauseTimer()}>
-					<NormalText style={{ fontSize: 24, marginTop: 24 }}>
-						Pause
 					</NormalText>
 				</Pressable>
 			</View>
