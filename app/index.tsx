@@ -1,4 +1,5 @@
 import { NormalText } from "@/components/StyledText";
+import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { View, Pressable } from "react-native";
 
@@ -17,21 +18,28 @@ export default function Main() {
   const breakTime = 30;
   const [time, setTime] = useState(workTime);
   const [workOrBreak, setTimerType] = useState('work')
-
+  const [workTimeLog, setWorkTimeLog] = useState<any>([])
+  const [breakTimeLog, setBreakTimeLog] = useState<any>([])
+  const [startTime, setStartTime] = useState(dayjs())
 
   useEffect(() => {
     setInterval(() => { setTime((a) => a > 0 ? a - 1 : a); }, 1000);
   }, []);
 
   const skipTimer = () => {
+    const captureTime = dayjs()
     if (workOrBreak === 'work') {
       setTimerType('break')
       setTime(breakTime)
+      setWorkTimeLog([...workTimeLog, { startTime: startTime, endTime: captureTime }])
+
     }
     else {
       setTimerType('work')
       setTime(workTime)
+      setBreakTimeLog([...breakTimeLog, { startTime: startTime, endTime: captureTime }])
     }
+    setStartTime(captureTime)
   }
 
   useEffect(() => {
@@ -40,21 +48,16 @@ export default function Main() {
     }
   }), [time]
 
-
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: "black" }}>
-        {/* <NormalText style={{ margin: "auto" }}>{getDisplayTime(ptime)}</NormalText> */}
         <Pressable style={{ margin: "auto" }} onPress={() => { }}>
           <NormalText>{getDisplayTime(time)}</NormalText>
         </Pressable>
         <Pressable style={{ margin: "auto" }} onPress={skipTimer}
         >
-          <NormalText>Swipe right</NormalText>
+          <NormalText>Swipe Left & Right</NormalText>
         </Pressable>
-        {/* <Pressable style={{ margin: "auto" }} onPress={() => { }}>
-          <NormalText>Swipe left</NormalText>
-        </Pressable> */}
       </View>
     </View>
   );
