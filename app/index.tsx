@@ -1,7 +1,7 @@
 import { NormalText } from "@/components/StyledText";
 import React, { useRef, useState } from "react";
-import { View, Pressable } from "react-native";
 import {
+	Directions,
 	Gesture,
 	GestureDetector,
 	GestureHandlerRootView,
@@ -24,7 +24,7 @@ export default function Main() {
 	const intervalRef = useRef<any>(null);
 	const [isPaused, setIsPaused] = useState(false);
 
-	const tap = Gesture.Tap()
+	const singleTap = Gesture.Tap()
 		.onEnd(() => {
 			if (!isPaused) {
 				startPauseTimer();
@@ -34,6 +34,24 @@ export default function Main() {
 			setIsPaused((isPaused) => !isPaused);
 		})
 		.runOnJS(true);
+
+	const doubleTap = Gesture.Tap()
+		.numberOfTaps(2)
+		.onEnd(() => {
+			stopTimer();
+			setIsPaused(false);
+		})
+		.runOnJS(true);
+
+	const swipeUp = Gesture.Fling()
+		.direction(Directions.UP)
+		.onEnd(() => {
+			console.log("asd");
+			setPTime((a) => a + 60);
+		})
+		.runOnJS(true);
+
+	const gestures = Gesture.Exclusive(swipeUp, doubleTap, singleTap);
 
 	function startPauseTimer() {
 		if (!intervalRef.current) {
@@ -64,23 +82,16 @@ export default function Main() {
 				backgroundColor: "black",
 			}}
 		>
-			<GestureDetector gesture={tap}>
+			<GestureDetector gesture={gestures}>
 				<NormalText
 					style={{
 						fontSize: 86,
+						padding: 86,
 					}}
 				>
 					{getDisplayTime(ptime)}
 				</NormalText>
 			</GestureDetector>
-
-			<View>
-				<Pressable onPress={() => stopTimer()}>
-					<NormalText style={{ fontSize: 24, marginTop: 24 }}>
-						Stop
-					</NormalText>
-				</Pressable>
-			</View>
 		</GestureHandlerRootView>
 	);
 }
