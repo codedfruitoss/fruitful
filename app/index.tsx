@@ -1,5 +1,7 @@
 import { NormalText } from "@/components/StyledText";
 import dayjs from "dayjs";
+import { workTimeAtom, breakTimeAtom } from '@/jotai/atoms'
+import { useAtom, useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
 import {
 	Directions,
@@ -19,8 +21,8 @@ function getDisplayTime(seconds: number) {
 }
 
 export default function Main() {
-	const workTime = 1500;
-	const breakTime = 300;
+	const workTime = useAtomValue(workTimeAtom)
+	const breakTime = useAtomValue(breakTimeAtom)
 	const [time, setTime] = useState(workTime);
 	const [workOrBreak, setTimerType] = useState("work");
 	const [workTimeLog, setWorkTimeLog] = useState<any>([]);
