@@ -1,6 +1,6 @@
 import { NormalText } from "@/components/StyledText";
-import dayjs from "dayjs";
-import { workTimeAtom, breakTimeAtom } from '@/jotai/atoms'
+import dayjs, { Dayjs } from "dayjs";
+import { workTimeAtom, breakTimeAtom, workTimeLogAtom, breakTimeLogAtom } from '@/jotai/atoms'
 import { useAtom, useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -9,6 +9,8 @@ import {
 	GestureDetector,
 	GestureHandlerRootView,
 } from "react-native-gesture-handler";
+import { Pressable } from "react-native";
+import { Link } from "expo-router";
 
 function getMinutes(s: number) {
 	return Math.floor(s / 60);
@@ -25,10 +27,11 @@ export default function Main() {
 	const breakTime = useAtomValue(breakTimeAtom)
 	const [time, setTime] = useState(workTime);
 	const [workOrBreak, setTimerType] = useState("work");
-	const [workTimeLog, setWorkTimeLog] = useState<any>([]);
-	const [breakTimeLog, setBreakTimeLog] = useState<any>([]);
-	const [startTime, setStartTime] = useState(dayjs());
+	const [workTimeLog, setWorkTimeLog] = useAtom(workTimeLogAtom);
+	const [breakTimeLog, setBreakTimeLog] = useAtom(breakTimeLogAtom);
+	const [startTime, setStartTime] = useState<Dayjs>();
 	const [isPaused, setIsPaused] = useState(false);
+	const [isTimerOn, setIsTimerOnFlag] = useState(false)
 	const intervalRef = useRef<any>(null);
 
 	function startTimer() {
@@ -36,51 +39,80 @@ export default function Main() {
 			const id = setInterval(() => {
 				setTime((a) => (a > 0 ? a - 1 : a));
 			}, 1000);
+			setStartTime(dayjs())
 			intervalRef.current = id;
+		}
+	}
+
+	const logWorkTime = (currentTime: Dayjs) => {
+		if (startTime) {
+			setWorkTimeLog([
+				...workTimeLog,
+				{ startTime: startTime, endTime: currentTime },
+			]);
+		}
+	}
+
+	const logBreakTime = (currentTime: Dayjs) => {
+		if (startTime) {
+			setBreakTimeLog([
+				...breakTimeLog,
+				{ startTime: startTime, endTime: currentTime },
+			]);
 		}
 	}
 
 	function stopTimer() {
 		clearInterval(intervalRef?.current);
 		intervalRef.current = null;
+		const currentTime = dayjs();
 		if (workOrBreak === "work") {
 			setTime(workTime);
+			logWorkTime(currentTime)
 		} else {
 			setTime(breakTime);
+			logBreakTime(currentTime)
 		}
 	}
 
 	function pauseTimer() {
 		clearInterval(intervalRef?.current);
 		intervalRef.current = null;
+		const currentTime = dayjs();
+		if (workOrBreak === "work") {
+			logWorkTime(currentTime)
+		} else {
+			logBreakTime(currentTime)
+		}
 	}
 
 	const skipTimer = () => {
-		const captureTime = dayjs();
+		const currentTime = dayjs();
 		if (workOrBreak === "work") {
 			setTimerType("break");
 			setTime(breakTime);
-			setWorkTimeLog([
-				...workTimeLog,
-				{ startTime: startTime, endTime: captureTime },
-			]);
+			console.log("isPaused", isPaused)
+			if (isTimerOn) {
+				logWorkTime(currentTime)
+			}
 		} else {
 			setTimerType("work");
 			setTime(workTime);
-			setBreakTimeLog([
-				...breakTimeLog,
-				{ startTime: startTime, endTime: captureTime },
-			]);
+			if (isTimerOn) {
+				logBreakTime(currentTime)
+			}
 		}
-		setStartTime(captureTime);
+		setStartTime(currentTime);
 	};
 
 	const singleTap = Gesture.Tap()
 		.onEnd(() => {
 			if (!isPaused) {
 				startTimer();
+				setIsTimerOnFlag(true)
 			} else {
 				pauseTimer();
+				setIsTimerOnFlag(false)
 			}
 			setIsPaused((isPaused) => !isPaused);
 		})
@@ -91,6 +123,7 @@ export default function Main() {
 		.onEnd(() => {
 			stopTimer();
 			setIsPaused(false);
+			setIsTimerOnFlag(false)
 		})
 		.runOnJS(true);
 
@@ -140,6 +173,14 @@ export default function Main() {
 					{getDisplayTime(time)}
 				</NormalText>
 			</GestureDetector>
+			<Link href="/analysis" asChild>
+				<Pressable>
+					<NormalText>Analysis</NormalText>
+				</Pressable>
+			</Link>
+
+			<NormalText>{JSON.stringify(workTimeLog)}</NormalText>
+			<NormalText>{`is paused: ${isTimerOn}`}</NormalText>
 		</GestureHandlerRootView>
 	);
 }
