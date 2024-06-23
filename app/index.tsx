@@ -1,6 +1,11 @@
-import { NormalText } from "@/components/StyledText";
+import { NormalText } from "@/components/ui/StyledText";
 import dayjs, { Dayjs } from "dayjs";
-import { workTimeAtom, breakTimeAtom, workTimeLogAtom, breakTimeLogAtom } from '@/jotai/atoms'
+import {
+	workTimeAtom,
+	breakTimeAtom,
+	workTimeLogAtom,
+	breakTimeLogAtom,
+} from "@/store/time";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -23,15 +28,15 @@ function getDisplayTime(seconds: number) {
 }
 
 export default function Main() {
-	const workTime = useAtomValue(workTimeAtom)
-	const breakTime = useAtomValue(breakTimeAtom)
+	const workTime = useAtomValue(workTimeAtom);
+	const breakTime = useAtomValue(breakTimeAtom);
 	const [time, setTime] = useState(workTime);
 	const [workOrBreak, setTimerType] = useState("work");
 	const [workTimeLog, setWorkTimeLog] = useAtom(workTimeLogAtom);
 	const [breakTimeLog, setBreakTimeLog] = useAtom(breakTimeLogAtom);
 	const [startTime, setStartTime] = useState<Dayjs>();
 	const [isPaused, setIsPaused] = useState(false);
-	const [isTimerOn, setIsTimerOnFlag] = useState(false)
+	const [isTimerOn, setIsTimerOnFlag] = useState(false);
 	const intervalRef = useRef<any>(null);
 
 	function startTimer() {
@@ -39,7 +44,7 @@ export default function Main() {
 			const id = setInterval(() => {
 				setTime((a) => (a > 0 ? a - 1 : a));
 			}, 1000);
-			setStartTime(dayjs())
+			setStartTime(dayjs());
 			intervalRef.current = id;
 		}
 	}
@@ -51,7 +56,7 @@ export default function Main() {
 				{ startTime: startTime, endTime: currentTime },
 			]);
 		}
-	}
+	};
 
 	const logBreakTime = (currentTime: Dayjs) => {
 		if (startTime) {
@@ -60,7 +65,7 @@ export default function Main() {
 				{ startTime: startTime, endTime: currentTime },
 			]);
 		}
-	}
+	};
 
 	function stopTimer() {
 		clearInterval(intervalRef?.current);
@@ -68,10 +73,10 @@ export default function Main() {
 		const currentTime = dayjs();
 		if (workOrBreak === "work") {
 			setTime(workTime);
-			logWorkTime(currentTime)
+			logWorkTime(currentTime);
 		} else {
 			setTime(breakTime);
-			logBreakTime(currentTime)
+			logBreakTime(currentTime);
 		}
 	}
 
@@ -80,9 +85,9 @@ export default function Main() {
 		intervalRef.current = null;
 		const currentTime = dayjs();
 		if (workOrBreak === "work") {
-			logWorkTime(currentTime)
+			logWorkTime(currentTime);
 		} else {
-			logBreakTime(currentTime)
+			logBreakTime(currentTime);
 		}
 	}
 
@@ -91,15 +96,15 @@ export default function Main() {
 		if (workOrBreak === "work") {
 			setTimerType("break");
 			setTime(breakTime);
-			console.log("isPaused", isPaused)
+			console.log("isPaused", isPaused);
 			if (isTimerOn) {
-				logWorkTime(currentTime)
+				logWorkTime(currentTime);
 			}
 		} else {
 			setTimerType("work");
 			setTime(workTime);
 			if (isTimerOn) {
-				logBreakTime(currentTime)
+				logBreakTime(currentTime);
 			}
 		}
 		setStartTime(currentTime);
@@ -109,10 +114,10 @@ export default function Main() {
 		.onEnd(() => {
 			if (!isPaused) {
 				startTimer();
-				setIsTimerOnFlag(true)
+				setIsTimerOnFlag(true);
 			} else {
 				pauseTimer();
-				setIsTimerOnFlag(false)
+				setIsTimerOnFlag(false);
 			}
 			setIsPaused((isPaused) => !isPaused);
 		})
@@ -123,7 +128,7 @@ export default function Main() {
 		.onEnd(() => {
 			stopTimer();
 			setIsPaused(false);
-			setIsTimerOnFlag(false)
+			setIsTimerOnFlag(false);
 		})
 		.runOnJS(true);
 
