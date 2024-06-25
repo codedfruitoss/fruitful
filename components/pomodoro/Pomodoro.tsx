@@ -74,7 +74,6 @@ export default function Pomodoro() {
         setStartTime(null)
     }
 
-
     const handleTimerActions = (action: string) => {
         switch (action) {
             case TIMER_ACTIONS.start:
@@ -88,6 +87,9 @@ export default function Pomodoro() {
                 break;
             case TIMER_ACTIONS.stop:
                 stopTimer()
+                break;
+            case TIMER_ACTIONS.warn:
+                console.log("1 min remaining warning")
                 break;
         }
     }

@@ -2,6 +2,8 @@ import { Directions, Gesture, GestureDetector } from "react-native-gesture-handl
 import { NormalText } from "../ui/StyledText";
 import { useEffect, useRef, useState } from "react";
 import { TIMER_ACTIONS } from "@/utils/constants";
+import { warningTimeAtom } from "@/store/time";
+import { useAtomValue } from "jotai";
 
 interface clockProps {
     time: number,
@@ -21,11 +23,15 @@ function getDisplayTime(seconds: number) {
 
 export default function Clock({ time, setTime, handleTimerAction }: clockProps) {
     const intervalRef = useRef<any>(null);
+    const warningTime = useAtomValue(warningTimeAtom)
 
     const isRunning = Boolean(intervalRef.current)
     useEffect(() => {
         if (time === 0) {
             handleTimerAction(TIMER_ACTIONS.skip)
+        }
+        if (time === warningTime) {
+            handleTimerAction(TIMER_ACTIONS.warn)
         }
     }, [time])
 
