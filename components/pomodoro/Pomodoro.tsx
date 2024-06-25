@@ -88,6 +88,10 @@ export default function Pomodoro() {
             case TIMER_ACTIONS.stop:
                 stopTimer()
                 break;
+            case TIMER_ACTIONS.end:
+                skipTimer()
+                console.log("Do you want to continue?")
+                break;
             case TIMER_ACTIONS.warn:
                 console.log("1 min remaining warning")
                 break;

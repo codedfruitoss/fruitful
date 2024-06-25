@@ -10,5 +10,6 @@ export const TIMER_ACTIONS = {
 	start: "start",
 	skip: "skip",
 	pause: "pause",
-	warn: "warn"
+	warn: "warn",
+	end: "end"
 };

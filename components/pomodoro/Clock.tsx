@@ -28,7 +28,7 @@ export default function Clock({ time, setTime, handleTimerAction }: clockProps) 
     const isRunning = Boolean(intervalRef.current)
     useEffect(() => {
         if (time === 0) {
-            handleTimerAction(TIMER_ACTIONS.skip)
+            handleTimerAction(TIMER_ACTIONS.end)
         }
         if (time === warningTime) {
             handleTimerAction(TIMER_ACTIONS.warn)
