@@ -1,115 +1,81 @@
-import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
+import {
+	Directions,
+	Gesture,
+	GestureDetector,
+} from "react-native-gesture-handler";
 import { NormalText } from "../ui/StyledText";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { T_TIMER_ACTIONS } from "@/utils/types";
+import { TIMER_ACTIONS } from "@/utils/constants";
 
 interface clockProps {
-    time: { time: number },
-    handleTimerAction: (action: string) => void
+	time: number;
+	handleTimerAction: (action: T_TIMER_ACTIONS) => void;
 }
 
 function getMinutes(s: number) {
-    return Math.floor(s / 60);
+	return Math.floor(s / 60);
 }
 
 function getDisplayTime(seconds: number) {
-    const minutes = getMinutes(seconds);
-    const s = seconds % 60;
-    return `${minutes}:${s < 10 ? "0" + s : s}`;
+	const minutes = getMinutes(seconds);
+	const s = seconds % 60;
+	return `${minutes}:${s < 10 ? "0" + s : s}`;
 }
 
-
 export default function Clock({ time, handleTimerAction }: clockProps) {
+	const [isPaused, setIsPaused] = useState(false);
 
-    console.log("time", time)
-    const [clockTime, setClockTime] = useState(time.time);
-    const [isPaused, setIsPaused] = useState(false);
-    const intervalRef = useRef<any>(null);
+	const singleTap = Gesture.Tap()
+		.onEnd(() => {
+			if (!isPaused) {
+				handleTimerAction(TIMER_ACTIONS.start);
+			} else {
+				handleTimerAction(TIMER_ACTIONS.pause);
+			}
+			setIsPaused((isPaused) => !isPaused);
+		})
+		.runOnJS(true);
 
+	const swipeDown = Gesture.Fling()
+		.direction(Directions.DOWN)
+		.onEnd(() => {
+			handleTimerAction(TIMER_ACTIONS.stop);
+			setIsPaused(false);
+		})
+		.runOnJS(true);
 
-    useEffect(() => {
-        if (clockTime === 0) {
-            handleTimerAction('skipTimer')// skipTimer();
-        }
-    }, [clockTime]);
+	const swipeUp = Gesture.Fling()
+		.direction(Directions.UP)
+		.onEnd(() => {
+			handleTimerAction(TIMER_ACTIONS.increment);
+		})
+		.runOnJS(true);
 
-    useEffect(() => {
-        setClockTime(time.time)
-        startTimer()
-    }, [time])
+	const swipeLeft = Gesture.Fling()
+		.direction(Directions.LEFT | Directions.RIGHT)
+		.onEnd(() => {
+			handleTimerAction(TIMER_ACTIONS.stop);
+		})
+		.runOnJS(true);
 
-    function startTimer() {
-        if (!intervalRef.current) {
-            const id = setInterval(() => {
-                setClockTime((a) => (a > 0 ? a - 1 : a));
-            }, 1000);
-            intervalRef.current = id;
-        }
-    }
+	const gestures = Gesture.Exclusive(
+		swipeLeft,
+		swipeUp,
+		swipeDown,
+		singleTap
+	);
 
-    function pauseTimer() {
-        clearInterval(intervalRef?.current);
-        intervalRef.current = null;
-    }
-
-
-    const singleTap = Gesture.Tap()
-        .onEnd(() => {
-            if (!isPaused) {
-                startTimer()
-                handleTimerAction('startTimer')// startTimer();
-                // setIsTimerOnFlag(true)
-            } else {
-                pauseTimer()
-                handleTimerAction('pauseTimer') // pauseTimer();
-                // setIsTimerOnFlag(false)
-            }
-            setIsPaused((isPaused) => !isPaused);
-        })
-        .runOnJS(true);
-
-    const swipeDown = Gesture.Fling()
-        .direction(Directions.DOWN)
-        .onEnd(() => {
-            pauseTimer()
-            handleTimerAction('stopTimer')// stopTimer();
-            setIsPaused(false);
-            // setIsTimerOnFlag(false)
-        })
-        .runOnJS(true);
-
-    const swipeUp = Gesture.Fling()
-        .direction(Directions.UP)
-        .onEnd(() => {
-            setClockTime((a) => (a > 0 ? a + 60 : a));
-        })
-        .runOnJS(true);
-
-    const swipeLeft = Gesture.Fling()
-        .direction(Directions.LEFT | Directions.RIGHT)
-        .onEnd(() => {
-            handleTimerAction('skipTimer')// skipTimer();
-        })
-        .runOnJS(true);
-
-
-    const gestures = Gesture.Exclusive(
-        swipeLeft,
-        swipeUp,
-        swipeDown,
-        singleTap
-    );
-
-    return (
-        <GestureDetector gesture={gestures}>
-            <NormalText
-                style={{
-                    fontSize: 86,
-                    padding: 86,
-                }}
-            >
-                {getDisplayTime(clockTime)}
-            </NormalText>
-        </GestureDetector>
-
-    );
+	return (
+		<GestureDetector gesture={gestures}>
+			<NormalText
+				style={{
+					fontSize: 86,
+					padding: 86,
+				}}
+			>
+				{getDisplayTime(time)}
+			</NormalText>
+		</GestureDetector>
+	);
 }

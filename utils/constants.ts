@@ -8,4 +8,5 @@ export const TIMER_ACTIONS = {
 	start: "start",
 	skip: "skip",
 	pause: "pause",
-};
+	increment: "increment",
+} as const;
