@@ -1,4 +1,4 @@
 import { TIMER_NATURE, TIMER_ACTIONS } from "./constants";
 
-export type T_TIMER_NATURE = keyof typeof TIMER_NATURE;
-export type TIMER_ACTIONS = keyof typeof TIMER_ACTIONS;
+export type TIMER_NATURE_TYPE = keyof typeof TIMER_NATURE;
+export type TIMER_ACTIONS_TYPE = keyof typeof TIMER_ACTIONS;

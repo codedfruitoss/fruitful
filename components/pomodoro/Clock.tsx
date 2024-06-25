@@ -1,9 +1,11 @@
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { NormalText } from "../ui/StyledText";
 import { useEffect, useRef, useState } from "react";
+import { TIMER_ACTIONS } from "@/utils/constants";
 
 interface clockProps {
-    time: { time: number },
+    time: number,
+    setTime: (value: (a: number) => number) => void,
     handleTimerAction: (action: string) => void
 }
 
@@ -17,30 +19,20 @@ function getDisplayTime(seconds: number) {
     return `${minutes}:${s < 10 ? "0" + s : s}`;
 }
 
-
-export default function Clock({ time, handleTimerAction }: clockProps) {
-
-    console.log("time", time)
-    const [clockTime, setClockTime] = useState(time.time);
-    const [isPaused, setIsPaused] = useState(false);
+export default function Clock({ time, setTime, handleTimerAction }: clockProps) {
     const intervalRef = useRef<any>(null);
 
-
+    const isRunning = Boolean(intervalRef.current)
     useEffect(() => {
-        if (clockTime === 0) {
-            handleTimerAction('skipTimer')// skipTimer();
+        if (time === 0) {
+            handleTimerAction(TIMER_ACTIONS.skip)
         }
-    }, [clockTime]);
-
-    useEffect(() => {
-        setClockTime(time.time)
-        startTimer()
     }, [time])
 
     function startTimer() {
         if (!intervalRef.current) {
             const id = setInterval(() => {
-                setClockTime((a) => (a > 0 ? a - 1 : a));
+                setTime((a: number) => a > 0 ? a - 1 : a);
             }, 1000);
             intervalRef.current = id;
         }
@@ -54,16 +46,13 @@ export default function Clock({ time, handleTimerAction }: clockProps) {
 
     const singleTap = Gesture.Tap()
         .onEnd(() => {
-            if (!isPaused) {
-                startTimer()
-                handleTimerAction('startTimer')// startTimer();
-                // setIsTimerOnFlag(true)
-            } else {
+            if (isRunning) {
                 pauseTimer()
-                handleTimerAction('pauseTimer') // pauseTimer();
-                // setIsTimerOnFlag(false)
+                handleTimerAction(TIMER_ACTIONS.pause)
+            } else {
+                startTimer()
+                handleTimerAction(TIMER_ACTIONS.start)
             }
-            setIsPaused((isPaused) => !isPaused);
         })
         .runOnJS(true);
 
@@ -71,23 +60,22 @@ export default function Clock({ time, handleTimerAction }: clockProps) {
         .direction(Directions.DOWN)
         .onEnd(() => {
             pauseTimer()
-            handleTimerAction('stopTimer')// stopTimer();
-            setIsPaused(false);
-            // setIsTimerOnFlag(false)
+            handleTimerAction(TIMER_ACTIONS.stop)
         })
         .runOnJS(true);
 
     const swipeUp = Gesture.Fling()
         .direction(Directions.UP)
         .onEnd(() => {
-            setClockTime((a) => (a > 0 ? a + 60 : a));
+            setTime((a) => (a > 0 ? a + 60 : a));
         })
         .runOnJS(true);
 
     const swipeLeft = Gesture.Fling()
         .direction(Directions.LEFT | Directions.RIGHT)
         .onEnd(() => {
-            handleTimerAction('skipTimer')// skipTimer();
+            handleTimerAction(TIMER_ACTIONS.skip)
+            startTimer()
         })
         .runOnJS(true);
 
@@ -107,7 +95,7 @@ export default function Clock({ time, handleTimerAction }: clockProps) {
                     padding: 86,
                 }}
             >
-                {getDisplayTime(clockTime)}
+                {getDisplayTime(time)}
             </NormalText>
         </GestureDetector>
 
