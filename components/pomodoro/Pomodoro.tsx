@@ -23,58 +23,72 @@ export default function Pomodoro() {
     const [breakTimeLog, setBreakTimeLog] = useAtom(breakTimeLogAtom);
     const [startTime, setStartTime] = useState<Dayjs | null>(null);
 
-
-    const logWorkTime = (currentTime: Dayjs) => {
+    const logWorkTime = (endTime: Dayjs) => {
         if (startTime) {
             setWorkTimeLog([
                 ...workTimeLog,
-                { startTime: startTime, endTime: currentTime },
+                { startTime, endTime },
             ]);
         }
     };
 
-    const logBreakTime = (currentTime: Dayjs) => {
+    const logBreakTime = (endTime: Dayjs) => {
         if (startTime) {
             setBreakTimeLog([
                 ...breakTimeLog,
-                { startTime: startTime, endTime: currentTime },
+                { startTime, endTime },
             ]);
         }
     };
 
+    const startTimer = () => {
+        setStartTime(dayjs());
+    }
+
+    const pauseTimer = (currentTime: Dayjs = dayjs()) => {
+        if (timerNature === TIMER_NATURE.work) {
+            logWorkTime(currentTime);
+        } else {
+            logBreakTime(currentTime);
+        }
+        setStartTime(null)
+    }
+
+    const skipTimer = (currentTime: Dayjs = dayjs()) => {
+        if (timerNature === TIMER_NATURE.work) {
+            setTimerNature(TIMER_NATURE.break);
+            setTime(breakTime);
+            logWorkTime(currentTime);
+
+        } else {
+            setTimerNature(TIMER_NATURE.work);
+            setTime(workTime);
+            logBreakTime(currentTime);
+        }
+        if (startTime) setStartTime(currentTime)
+    }
+
+    const stopTimer = (currentTime: Dayjs = dayjs()) => {
+        setTime(workTime);
+        logWorkTime(currentTime);
+        setStartTime(null)
+    }
+
+
     const handleTimerActions = (action: string) => {
-        const currentTime = dayjs();
         switch (action) {
             case TIMER_ACTIONS.start:
-                setStartTime(dayjs());
+                startTimer()
                 break;
             case TIMER_ACTIONS.pause:
-                if (timerNature === TIMER_NATURE.work) {
-                    logWorkTime(currentTime);
-                } else {
-                    logBreakTime(currentTime);
-                }
-                setStartTime(null)
+                pauseTimer()
                 break;
             case TIMER_ACTIONS.skip:
-                if (timerNature === TIMER_NATURE.work) {
-                    setTimerNature(TIMER_NATURE.break);
-                    setTime(breakTime);
-                    logWorkTime(currentTime);
-
-                } else {
-                    setTimerNature(TIMER_NATURE.work);
-                    setTime(workTime);
-                    logBreakTime(currentTime);
-                }
-                if (startTime) setStartTime(currentTime)
+                skipTimer()
                 break;
             case TIMER_ACTIONS.stop:
-                if (timerNature === TIMER_NATURE.work) {
-                    setTime(workTime);
-                    logWorkTime(currentTime);
-                }
-                setStartTime(null)
+                stopTimer()
+                break;
         }
     }
 
