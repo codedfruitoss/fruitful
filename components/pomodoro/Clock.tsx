@@ -1,13 +1,12 @@
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { NormalText } from "../ui/StyledText";
 import { useEffect, useRef, useState } from "react";
-import { TIMER_ACTIONS } from "@/utils/constants";
+import { CLOCK_ACTION, TIMER_ACTIONS } from "@/utils/constants";
 import { warningTimeAtom } from "@/store/time";
 import { useAtomValue } from "jotai";
 
 interface clockProps {
-    time: number,
-    setTime: (value: (a: number) => number) => void,
+    time: { time: number, action?: string },
     handleTimerAction: (action: string) => void
 }
 
@@ -21,24 +20,35 @@ function getDisplayTime(seconds: number) {
     return `${minutes}:${s < 10 ? "0" + s : s}`;
 }
 
-export default function Clock({ time, setTime, handleTimerAction }: clockProps) {
+export default function Clock({ time, handleTimerAction }: clockProps) {
     const intervalRef = useRef<any>(null);
     const warningTime = useAtomValue(warningTimeAtom)
+    const [clockTime, setClockTime] = useState(time.time)
+
+    useEffect(() => {
+        console.log("time clock", time.time)
+        setClockTime(time.time)
+        if (time.action === CLOCK_ACTION.start) {
+            startTimer()
+        }
+    }, [time])
 
     const isRunning = Boolean(intervalRef.current)
     useEffect(() => {
-        if (time === 0) {
+        if (clockTime === 0) {
+            pauseTimer()
             handleTimerAction(TIMER_ACTIONS.end)
         }
-        if (time === warningTime) {
+        else if (clockTime === warningTime) {
             handleTimerAction(TIMER_ACTIONS.warn)
         }
-    }, [time])
+
+    }, [clockTime])
 
     function startTimer() {
         if (!intervalRef.current) {
             const id = setInterval(() => {
-                setTime((a: number) => a > 0 ? a - 1 : a);
+                setClockTime((a: number) => a > 0 ? a - 1 : a);
             }, 1000);
             intervalRef.current = id;
         }
@@ -73,7 +83,7 @@ export default function Clock({ time, setTime, handleTimerAction }: clockProps) 
     const swipeUp = Gesture.Fling()
         .direction(Directions.UP)
         .onEnd(() => {
-            setTime((a) => (a > 0 ? a + 60 : a));
+            setClockTime((a) => (a > 0 ? a + 60 : a));
         })
         .runOnJS(true);
 
@@ -101,7 +111,7 @@ export default function Clock({ time, setTime, handleTimerAction }: clockProps) 
                     padding: 86,
                 }}
             >
-                {getDisplayTime(time)}
+                {getDisplayTime(clockTime)}
             </NormalText>
         </GestureDetector>
 

@@ -12,12 +12,13 @@ import {
     GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import Clock from "./Clock";
-import { TIMER_ACTIONS, TIMER_NATURE } from "@/utils/constants";
+import { CLOCK_ACTION, TIMER_ACTIONS, TIMER_NATURE } from "@/utils/constants";
+import { Alert } from "react-native";
 
 export default function Pomodoro() {
     const workTime = useAtomValue(workTimeAtom);
     const breakTime = useAtomValue(breakTimeAtom);
-    const [time, setTime] = useState<number>(workTime);
+    const [time, setTime] = useState<{ time: number, action?: string }>({ time: workTime });
     const [timerNature, setTimerNature] = useState(TIMER_NATURE.work);
     const [workTimeLog, setWorkTimeLog] = useAtom(workTimeLogAtom);
     const [breakTimeLog, setBreakTimeLog] = useAtom(breakTimeLogAtom);
@@ -41,11 +42,11 @@ export default function Pomodoro() {
         }
     };
 
-    const startTimer = () => {
+    const onStart = () => {
         setStartTime(dayjs());
     }
 
-    const pauseTimer = (currentTime: Dayjs = dayjs()) => {
+    const onPause = (currentTime: Dayjs = dayjs()) => {
         if (timerNature === TIMER_NATURE.work) {
             logWorkTime(currentTime);
         } else {
@@ -54,43 +55,69 @@ export default function Pomodoro() {
         setStartTime(null)
     }
 
-    const skipTimer = (currentTime: Dayjs = dayjs()) => {
+    const onSkip = (currentTime: Dayjs = dayjs()) => {
         if (timerNature === TIMER_NATURE.work) {
             setTimerNature(TIMER_NATURE.break);
-            setTime(breakTime);
+            setTime({ time: breakTime });
             logWorkTime(currentTime);
 
         } else {
             setTimerNature(TIMER_NATURE.work);
-            setTime(workTime);
+            setTime({ time: workTime });
             logBreakTime(currentTime);
         }
         if (startTime) setStartTime(currentTime)
     }
 
-    const stopTimer = (currentTime: Dayjs = dayjs()) => {
-        setTime(workTime);
+    const onStop = (currentTime: Dayjs = dayjs()) => {
+        setTime({ time: workTime });
         logWorkTime(currentTime);
         setStartTime(null)
+    }
+
+    const confirmationMessage = () => {
+        return Alert.alert(
+            "Do you want to continue?",
+            "",
+            [
+                {
+                    text: "Continue",
+                    onPress: () => {
+                        if (timerNature === TIMER_NATURE.work) {
+                            setTime({ time: workTime, action: CLOCK_ACTION.start })
+                        }
+                        else if (timerNature === TIMER_NATURE.break) {
+                            setTime({ time: breakTime, action: CLOCK_ACTION.start })
+                        }
+                    },
+                },
+                {
+                    text: "Cancel",
+                    onPress: () => {
+                        onStop()
+                    }
+                },
+            ]
+        );
+
     }
 
     const handleTimerActions = (action: string) => {
         switch (action) {
             case TIMER_ACTIONS.start:
-                startTimer()
+                onStart()
                 break;
             case TIMER_ACTIONS.pause:
-                pauseTimer()
+                onPause()
                 break;
             case TIMER_ACTIONS.skip:
-                skipTimer()
+                onSkip()
                 break;
             case TIMER_ACTIONS.stop:
-                stopTimer()
+                onStop()
                 break;
             case TIMER_ACTIONS.end:
-                skipTimer()
-                console.log("Do you want to continue?")
+                confirmationMessage()
                 break;
             case TIMER_ACTIONS.warn:
                 console.log("1 min remaining warning")
@@ -104,10 +131,10 @@ export default function Pomodoro() {
                 flex: 1,
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "black",
+                backgroundColor: "black"
             }}
         >
-            <Clock time={time} setTime={setTime} handleTimerAction={handleTimerActions} />
+            <Clock time={time} handleTimerAction={handleTimerActions} />
         </GestureHandlerRootView>
     );
 }

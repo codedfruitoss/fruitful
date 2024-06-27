@@ -13,3 +13,8 @@ export const TIMER_ACTIONS = {
 	warn: "warn",
 	end: "end"
 };
+
+export const CLOCK_ACTION = {
+	start: "start",
+	stop: "stop"
+}
