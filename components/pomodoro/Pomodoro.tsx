@@ -77,22 +77,24 @@ export default function Pomodoro() {
 
     const confirmationMessage = () => {
         return Alert.alert(
-            "Do you want to continue?",
-            "",
+            `${timerNature === TIMER_NATURE.work ? 'Work session is over' : 'Break session is over'}`,
+            undefined,
             [
                 {
-                    text: "Continue",
+                    text: `Start ${timerNature === TIMER_NATURE.work ? 'Break' : 'Work'}`,
                     onPress: () => {
                         if (timerNature === TIMER_NATURE.work) {
-                            setTime({ time: workTime, action: CLOCK_ACTION.start })
+                            setTime({ time: breakTime, action: CLOCK_ACTION.start })
+                            setTimerNature(TIMER_NATURE.break);
                         }
                         else if (timerNature === TIMER_NATURE.break) {
-                            setTime({ time: breakTime, action: CLOCK_ACTION.start })
+                            setTime({ time: workTime, action: CLOCK_ACTION.start })
+                            setTimerNature(TIMER_NATURE.work);
                         }
                     },
                 },
                 {
-                    text: "Cancel",
+                    text: "Stop",
                     onPress: () => {
                         onStop()
                     }
