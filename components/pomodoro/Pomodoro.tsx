@@ -122,11 +122,11 @@ export default function Pomodoro() {
     await newSound.playAsync();
   };
 
-  const stopSound = async () => {
-    if (sound) {
-      await sound.stopAsync();
-    }
-  };
+  // const stopSound = async () => {
+  //   if (sound) {
+  //     await sound.stopAsync();
+  //   }
+  // };
 
   const handleTimerActions = (action: string) => {
     switch (action) {
