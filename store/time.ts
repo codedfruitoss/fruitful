@@ -1,5 +1,5 @@
-import { Dayjs } from "dayjs";
-import { atom } from "jotai";
+import { Dayjs } from 'dayjs';
+import { atom } from 'jotai';
 
 const workTimeAtom = atom(1500);
 const breakTimeAtom = atom(90);
@@ -8,9 +8,9 @@ const breakTimeLogAtom = atom<{ startTime: Dayjs; endTime: Dayjs }[]>([]);
 const warningTimeAtom = atom(60);
 
 export {
-	workTimeAtom,
-	breakTimeAtom,
-	workTimeLogAtom,
-	breakTimeLogAtom,
-	warningTimeAtom,
+  workTimeAtom,
+  breakTimeAtom,
+  workTimeLogAtom,
+  breakTimeLogAtom,
+  warningTimeAtom,
 };
