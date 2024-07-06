@@ -8,20 +8,11 @@ import { useEffect, useRef, useState } from 'react';
 import { CLOCK_ACTION, TIMER_ACTIONS } from '@/utils/constants';
 import { warningTimeAtom } from '@/store/time';
 import { useAtomValue } from 'jotai';
+import { getDisplayTime } from '@/utils/time';
 
 interface clockProps {
   time: { time: number; action?: string };
   handleTimerAction: (action: string) => void;
-}
-
-function getMinutes(s: number) {
-  return Math.floor(s / 60);
-}
-
-function getDisplayTime(seconds: number) {
-  const minutes = getMinutes(seconds);
-  const s = seconds % 60;
-  return `${minutes}:${s < 10 ? '0' + s : s}`;
 }
 
 export default function Clock({ time, handleTimerAction }: clockProps) {
@@ -30,7 +21,6 @@ export default function Clock({ time, handleTimerAction }: clockProps) {
   const [clockTime, setClockTime] = useState(time.time);
 
   useEffect(() => {
-    console.log('time clock', time.time);
     setClockTime(time.time);
     if (time.action === CLOCK_ACTION.start) {
       startTimer();

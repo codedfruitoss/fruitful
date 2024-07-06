@@ -18,3 +18,14 @@ export const CLOCK_ACTION = {
   start: 'start',
   stop: 'stop',
 };
+
+export const appStates = {
+  active: 'active',
+  background: 'background',
+};
+
+export const notificationIdentifiers = {
+  startWork: 'startWork',
+  startBreak: 'startBreak',
+  stopTimer: 'stopTimer',
+};

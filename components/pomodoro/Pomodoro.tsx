@@ -6,12 +6,24 @@ import {
   breakTimeLogAtom,
 } from '@/store/time';
 import { useAtom, useAtomValue } from 'jotai';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Clock from './Clock';
-import { CLOCK_ACTION, TIMER_ACTIONS, TIMER_NATURE } from '@/utils/constants';
-import { Alert } from 'react-native';
+import {
+  CLOCK_ACTION,
+  TIMER_ACTIONS,
+  TIMER_NATURE,
+  appStates,
+  notificationIdentifiers,
+} from '@/utils/constants';
+import { Alert, AppState } from 'react-native';
 import { AVPlaybackSource, Audio } from 'expo-av';
+import * as Notifications from 'expo-notifications';
+import {
+  registerForPushNotificationsAsync,
+  schedulePushNotification,
+} from '@/utils/notifications';
+import { NormalText } from '../ui/StyledText';
 
 const sounds = {
   warning: require('../../assets/audio/warning.mp3'),
@@ -29,6 +41,88 @@ export default function Pomodoro() {
   const [breakTimeLog, setBreakTimeLog] = useAtom(breakTimeLogAtom);
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [currentAppState, setCurrentAppState] = useState(AppState.currentState);
+  const [sessionEndNotificationId, setSessionEndNotificationId] = useState('');
+  const responseListener = useRef<Notifications.Subscription>();
+
+  const displayNotification = async () => {
+    if (startTime) {
+      await schedulePushNotification(timerNature, setSessionEndNotificationId);
+    }
+  };
+
+  const startWorkOrbreak = (timeNature?: string) => {
+    let ongoingTimeNature = timeNature;
+    if (!ongoingTimeNature) {
+      ongoingTimeNature =
+        timerNature === TIMER_NATURE.work
+          ? notificationIdentifiers.startBreak
+          : notificationIdentifiers.startWork;
+    }
+
+    if (ongoingTimeNature === notificationIdentifiers.startWork) {
+      setTimerNature(TIMER_NATURE.work);
+      setTime({
+        time: workTime,
+        action: CLOCK_ACTION.start,
+      });
+    } else if (ongoingTimeNature === notificationIdentifiers.startBreak) {
+      setTimerNature(TIMER_NATURE.break);
+      setTime({
+        time: breakTime,
+        action: CLOCK_ACTION.start,
+      });
+    }
+  };
+
+  const startWorkOrBreakHandler = async (timeNature: string, id: string) => {
+    await Notifications.dismissNotificationAsync(id);
+    startWorkOrbreak(timeNature);
+  };
+
+  const stopTimerHandler = async (id: string) => {
+    await Notifications.dismissNotificationAsync(id);
+    onStop();
+  };
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener(
+        async (response) => {
+          if (response.actionIdentifier === 'stopTimer') {
+            stopTimerHandler(response?.notification?.request?.identifier);
+          } else if (
+            response.actionIdentifier === notificationIdentifiers.startBreak ||
+            response.actionIdentifier === notificationIdentifiers.startWork
+          ) {
+            startWorkOrBreakHandler(
+              response?.actionIdentifier,
+              response?.notification?.request?.identifier
+            );
+          }
+        }
+      );
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      setCurrentAppState(nextAppState);
+    });
+
+    return () => {
+      if (responseListener?.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
 
   const logWorkTime = (endTime: Dayjs) => {
     if (startTime) {
@@ -55,23 +149,27 @@ export default function Pomodoro() {
     setStartTime(null);
   };
 
-  const onSkip = (currentTime: Dayjs = dayjs()) => {
+  const onSkip = async (currentTime: Dayjs = dayjs()) => {
+    if (sessionEndNotificationId) {
+      await Notifications.dismissNotificationAsync(sessionEndNotificationId);
+    }
     if (timerNature === TIMER_NATURE.work) {
       setTimerNature(TIMER_NATURE.break);
-      setTime({ time: breakTime });
+      setTime({ time: breakTime, action: CLOCK_ACTION.start });
       logWorkTime(currentTime);
     } else {
       setTimerNature(TIMER_NATURE.work);
-      setTime({ time: workTime });
+      setTime({ time: workTime, action: CLOCK_ACTION.start });
       logBreakTime(currentTime);
     }
-    if (startTime) setStartTime(currentTime);
+    setStartTime(currentTime);
   };
 
-  const onStop = (currentTime: Dayjs = dayjs()) => {
+  const onStop = async (currentTime: Dayjs = dayjs()) => {
     setTime({ time: workTime });
     logWorkTime(currentTime);
     setStartTime(null);
+    setTimerNature(TIMER_NATURE.work);
   };
 
   const confirmationMessage = () => {
@@ -86,19 +184,8 @@ export default function Pomodoro() {
         {
           text: `Start ${timerNature === TIMER_NATURE.work ? 'Break' : 'Work'}`,
           onPress: () => {
-            if (timerNature === TIMER_NATURE.work) {
-              setTime({
-                time: breakTime,
-                action: CLOCK_ACTION.start,
-              });
-              setTimerNature(TIMER_NATURE.break);
-            } else if (timerNature === TIMER_NATURE.break) {
-              setTime({
-                time: workTime,
-                action: CLOCK_ACTION.start,
-              });
-              setTimerNature(TIMER_NATURE.work);
-            }
+            console.log('timer nature', timerNature);
+            startWorkOrbreak();
           },
         },
         {
@@ -143,22 +230,17 @@ export default function Pomodoro() {
         onStop();
         break;
       case TIMER_ACTIONS.end:
-        confirmationMessage();
+        if (currentAppState === appStates.active) {
+          confirmationMessage();
+        } else {
+          displayNotification();
+        }
         break;
       case TIMER_ACTIONS.warn:
-        console.log('1 min remaining warning');
         playSound(sounds.warning);
         break;
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
 
   return (
     <GestureHandlerRootView
@@ -170,6 +252,7 @@ export default function Pomodoro() {
       }}
     >
       <Clock time={time} handleTimerAction={handleTimerActions} />
+      <NormalText>{timerNature}</NormalText>
     </GestureHandlerRootView>
   );
 }
