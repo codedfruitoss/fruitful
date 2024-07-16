@@ -12,6 +12,10 @@ export const TIMER_ACTIONS = {
   pause: 'pause',
   warn: 'warn',
   end: 'end',
+  tap: 'tap',
+  swipeUp: 'swipeUp',
+  swipeDown: 'swipeDown',
+  swipeLeftOrRight: 'swipeLeftOrRight',
 };
 
 export const CLOCK_ACTION = {
