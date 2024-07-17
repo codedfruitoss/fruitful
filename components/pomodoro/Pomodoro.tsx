@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Clock2 from './Clock2';
+import Clock from './Clock';
 import { appStates, TIMER_ACTIONS, TIMER_NATURE } from '@/utils/constants';
 import { useAtomValue } from 'jotai';
 import { breakTimeAtom, workTimeAtom, addTimeAtom } from '@/store/time';
@@ -25,7 +25,7 @@ function getSecondsDifference(latest: Dayjs, old: Dayjs) {
   return latest.diff(old, 'seconds');
 }
 
-export default function Pomodoro2() {
+export default function Pomodoro() {
   const workTime = useAtomValue(workTimeAtom);
   const breakTime = useAtomValue(breakTimeAtom);
   const addTimeValue = useAtomValue(addTimeAtom);
@@ -221,7 +221,7 @@ export default function Pomodoro2() {
         backgroundColor: 'black',
       }}
     >
-      <Clock2 time={time} handleTimerAction={handleTimerActions} />
+      <Clock time={time} handleTimerAction={handleTimerActions} />
       <Modal
         animationType="slide"
         transparent={true}

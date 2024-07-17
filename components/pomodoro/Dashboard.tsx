@@ -1,6 +1,6 @@
 import React from 'react';
-import Pomodoro2 from './Pomodoro2';
+import Pomodoro from './Pomodoro';
 
 export default function Dashboard() {
-  return <Pomodoro2 />;
+  return <Pomodoro />;
 }

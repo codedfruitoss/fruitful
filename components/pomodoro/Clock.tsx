@@ -16,7 +16,7 @@ interface clockProps {
   handleTimerAction: (action: string) => void;
 }
 
-export default function Clock2({ time, handleTimerAction }: clockProps) {
+export default function Clock({ time, handleTimerAction }: clockProps) {
   const singleTap = Gesture.Tap()
     .onEnd(() => {
       handleTimerAction(TIMER_ACTIONS.tap);
