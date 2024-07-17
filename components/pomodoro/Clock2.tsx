@@ -54,7 +54,7 @@ export default function Clock2({ time, handleTimerAction }: clockProps) {
           padding: 86,
         }}
       >
-        {time.remaining ? getDisplayTime(time.remaining) : ''}
+        {time.remaining ? getDisplayTime(time.remaining) : '0.00'}
       </NormalText>
     </GestureDetector>
   );

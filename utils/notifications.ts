@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { TIMER_NATURE } from './constants';
+import { TIME_OBJECT_TYPE } from './types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -12,36 +13,39 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function persistentNotificationButtons(timerNature: string) {
-  const timerLabel = timerNature === TIMER_NATURE.work ? 'Break' : 'Work';
-  await Notifications.setNotificationCategoryAsync('sessionEndNotification', [
-    {
-      buttonTitle: `Start ${timerLabel}`,
-      identifier: `start${timerLabel}`,
+// export async function persistentNotificationButtons(timerNature: string) {
+//   const timerLabel = timerNature === TIMER_NATURE.work ? 'Break' : 'Work';
+//   await Notifications.setNotificationCategoryAsync('sessionEndNotification', [
+//     {
+//       buttonTitle: `Start ${timerLabel}`,
+//       identifier: `start${timerLabel}`,
+//     },
+//     {
+//       identifier: 'stopTimer',
+//       buttonTitle: 'Stop',
+//     },
+//   ]);
+// }
+
+export async function schedulePushNotification(time: TIME_OBJECT_TYPE) {
+  console.log('schedule notit', time.remaining);
+  // persistentNotificationButtons(time.nature);
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `${time.nature} session is over`,
+      // sticky: true,
+      categoryIdentifier: 'sessionEndNotification',
     },
-    {
-      identifier: 'stopTimer',
-      buttonTitle: 'Stop',
+    trigger: {
+      seconds: time.remaining || 0,
     },
-  ]);
+    identifier: 'sessionEndNotification',
+  });
 }
 
-export async function schedulePushNotification(
-  timeNature: string,
-  setSessionEndNotificationId: (value: string) => void
-) {
-  persistentNotificationButtons(timeNature);
-  const sessionEndNotificationIdentifier =
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: `${timeNature} session is over`,
-        // sticky: true,
-        categoryIdentifier: 'sessionEndNotification',
-      },
-      trigger: null,
-    });
-  setSessionEndNotificationId(sessionEndNotificationIdentifier);
-}
+export const cancelNotification = async (id: string) => {
+  await Notifications.cancelScheduledNotificationAsync(id);
+};
 
 export async function registerForPushNotificationsAsync() {
   let token;
