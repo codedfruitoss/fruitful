@@ -73,23 +73,15 @@ export default function Pomodoro() {
   }, []);
 
   useEffect(() => {
-    if (Number(time.remaining) === 0) {
+    if (Number(time.remaining) <= 1) {
       clearUpdater();
-      setModalVisible(true);
+      Notifications.cancelScheduledNotificationAsync(
+        'sessionEndNotification'
+      ).then(() => {
+        setModalVisible(true);
+      });
     }
   }, [time]);
-
-  useEffect(() => {
-    if (currentAppState === appStates.background) {
-      if (time.remaining !== 0) displayNotification();
-    }
-  }, [currentAppState]);
-
-  const displayNotification = async () => {
-    if (time.start) {
-      await schedulePushNotification(time);
-    }
-  };
 
   const getElapsedTime = (currentTime: Dayjs = dayjs()) => {
     if (time.start) {
@@ -122,8 +114,10 @@ export default function Pomodoro() {
     }
   };
 
-  const getRemainingTime = (timeObject: TIME_OBJECT_TYPE) => {
-    const currentTime = dayjs();
+  const getRemainingTime = (
+    timeObject: TIME_OBJECT_TYPE,
+    currentTime = dayjs()
+  ) => {
     let timeLeft = timeObject.totalTime;
 
     if (timeObject.start) {
@@ -132,6 +126,16 @@ export default function Pomodoro() {
     }
     return timeLeft >= 0 ? timeLeft : 0;
   };
+
+  useEffect(() => {
+    if (currentAppState === appStates.background) {
+      if ((time.remaining !== 0 && time.start) || modalVisible) {
+        schedulePushNotification(time);
+      }
+    } else if (currentAppState === appStates.active && modalVisible) {
+      Notifications.dismissNotificationAsync('sessionEndNotification');
+    }
+  }, [currentAppState]);
 
   const startUpdater = () => {
     if (!intervalRef.current) {

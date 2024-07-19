@@ -30,22 +30,22 @@ Notifications.setNotificationHandler({
 export async function schedulePushNotification(time: TIME_OBJECT_TYPE) {
   console.log('schedule notit', time.remaining);
   // persistentNotificationButtons(time.nature);
+  console.log('time.remaining sche', time.remaining);
   await Notifications.scheduleNotificationAsync({
     content: {
       title: `${time.nature} session is over`,
       // sticky: true,
       categoryIdentifier: 'sessionEndNotification',
     },
-    trigger: {
-      seconds: time.remaining || 0,
-    },
+    trigger:
+      time.remaining && time.remaining > 1
+        ? {
+            seconds: time.remaining,
+          }
+        : null,
     identifier: 'sessionEndNotification',
   });
 }
-
-export const cancelNotification = async (id: string) => {
-  await Notifications.cancelScheduledNotificationAsync(id);
-};
 
 export async function registerForPushNotificationsAsync() {
   let token;
