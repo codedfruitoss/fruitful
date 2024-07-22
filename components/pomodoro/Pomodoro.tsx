@@ -40,6 +40,7 @@ export default function Pomodoro() {
   const responseListener = useRef<Notifications.Subscription>();
   const [currentAppState, setCurrentAppState] = useState(AppState.currentState);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     registerForPushNotificationsAsync();
@@ -167,8 +168,10 @@ export default function Pomodoro() {
   const onTap = () => {
     if (!time.start || !intervalRef.current) {
       onStartOrResume();
+      setIsPaused(false);
     } else if (intervalRef.current) {
       onPause();
+      setIsPaused(true);
     }
   };
 
@@ -184,6 +187,7 @@ export default function Pomodoro() {
   const skipSession = () => {
     clearUpdater();
     startWorkOrbreak(time.nature);
+    setIsPaused(false);
   };
 
   const onStop = () => {
@@ -197,6 +201,7 @@ export default function Pomodoro() {
         nature: TIMER_NATURE.work,
       };
     });
+    setIsPaused(false);
   };
 
   const handleTimerActions = (action: string) => {
@@ -225,7 +230,11 @@ export default function Pomodoro() {
         backgroundColor: 'black',
       }}
     >
-      <Clock time={time} handleTimerAction={handleTimerActions} />
+      <Clock
+        time={time}
+        handleTimerAction={handleTimerActions}
+        isPaused={isPaused}
+      />
       <Modal
         animationType="slide"
         transparent={true}
