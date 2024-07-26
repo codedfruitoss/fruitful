@@ -33,13 +33,24 @@ export default function Analysis() {
             setOpenLabelModal({ open: true, labelName: '', color: '' });
           }}
         >
-          <View style={{ flexDirection: 'row', gap: 5 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: 5,
+            }}
+          >
             <Ionicons name="add-circle-outline" size={25} color="white" />
             <NormalText>Add Label</NormalText>
           </View>
         </Pressable>
       </View>
-      <View style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          gap: 20,
+          flexWrap: 'wrap',
+        }}
+      >
         {labelsList?.map((item) => (
           <Pressable
             key={`edit-${item.name.toLowerCase()}-label`}
@@ -56,11 +67,15 @@ export default function Analysis() {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 gap: 5,
+                borderColor: '#666666',
+                borderRadius: 10,
+                borderWidth: 1,
+                padding: 5,
               }}
             >
-              <FontAwesome name="circle" size={24} color={item.color} />
+              <FontAwesome name="circle" size={20} color={item.color} />
               <NormalText>{item.name}</NormalText>
-              <Feather name="edit-2" size={24} color="white" />
+              <Feather name="edit-2" size={20} color="white" />
             </View>
           </Pressable>
         ))}
