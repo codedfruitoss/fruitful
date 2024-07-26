@@ -28,9 +28,7 @@ Notifications.setNotificationHandler({
 // }
 
 export async function schedulePushNotification(time: TIME_OBJECT_TYPE) {
-  console.log('schedule notit', time.remaining);
   // persistentNotificationButtons(time.nature);
-  console.log('time.remaining sche', time.remaining);
   await Notifications.scheduleNotificationAsync({
     content: {
       title: `${time.nature} session is over`,

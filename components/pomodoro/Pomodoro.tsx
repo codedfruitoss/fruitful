@@ -6,10 +6,7 @@ import { useAtomValue } from 'jotai';
 import { breakTimeAtom, workTimeAtom, addTimeAtom } from '@/store/time';
 import dayjs, { Dayjs } from 'dayjs';
 import { TIME_OBJECT_TYPE } from '@/utils/types';
-import {
-  registerForPushNotificationsAsync,
-  schedulePushNotification,
-} from '@/utils/notifications';
+import { schedulePushNotification } from '@/utils/notifications';
 import * as Notifications from 'expo-notifications';
 import {
   AppState,
@@ -43,8 +40,6 @@ export default function Pomodoro() {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    registerForPushNotificationsAsync();
-
     //Notification listerner
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener(
@@ -130,7 +125,7 @@ export default function Pomodoro() {
 
   useEffect(() => {
     if (currentAppState === appStates.background) {
-      if ((time.remaining !== 0 && time.start) || modalVisible) {
+      if ((time.remaining !== 0 && time.start && !isPaused) || modalVisible) {
         schedulePushNotification(time);
       }
     } else if (currentAppState === appStates.active && modalVisible) {
@@ -224,7 +219,7 @@ export default function Pomodoro() {
   return (
     <GestureHandlerRootView
       style={{
-        flex: 1,
+        flex: 11,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'black',
@@ -250,7 +245,7 @@ export default function Pomodoro() {
                 ? 'Work session is over'
                 : 'Break session is over'}
             </Text>
-            <View style={{ display: 'flex', flexDirection: 'row', gap: 5 }}>
+            <View style={{ flexDirection: 'row', gap: 5 }}>
               <Pressable
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => {
